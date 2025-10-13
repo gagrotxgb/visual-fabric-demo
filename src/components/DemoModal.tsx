@@ -7,6 +7,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Upload } from "lucide-react";
 import { toast } from "sonner";
 
@@ -15,24 +22,71 @@ interface DemoModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const OUTFIT_OPTIONS = [
+  "Men Short Kurta",
+  "Men Long Kurta",
+  "Sherwani",
+  "Bandhgala",
+  "Nehru Jacket over Kurta",
+  "Pathani Suit",
+  "Saree (Nivi drape)",
+  "Lehenga–Choli",
+  "Anarkali Suit",
+  "Salwar–Kameez",
+  "Womens Kurti with Jeans",
+];
+
 export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedOutfit, setSelectedOutfit] = useState<string>("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
       toast.success(`File selected: ${file.name}`);
     }
   };
 
-  const handleSubmit = () => {
-    if (selectedFile) {
-      toast.success("Demo submitted successfully!");
-      setSelectedFile(null);
-      onOpenChange(false);
-    } else {
+  const handleSubmit = async () => {
+    if (!selectedFile) {
       toast.error("Please upload a fabric image first");
+      return;
+    }
+    if (!selectedOutfit) {
+      toast.error("Please select an outfit option");
+      return;
+    }
+
+    try {
+      // Dummy API call
+      const formData = new FormData();
+      formData.append("fabric", selectedFile);
+      formData.append("outfit", selectedOutfit);
+
+      const response = await fetch("https://jsonplaceholder.typicode.com/posts", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        toast.success("Demo submitted successfully!");
+        setSelectedFile(null);
+        setPreviewUrl(null);
+        setSelectedOutfit("");
+        onOpenChange(false);
+      } else {
+        toast.error("Submission failed. Please try again.");
+      }
+    } catch (error) {
+      toast.error("An error occurred. Please try again.");
+      console.error(error);
     }
   };
 
@@ -63,7 +117,36 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
                 className="hidden"
               />
             </label>
+
+            {previewUrl && (
+              <div className="flex justify-center">
+                <img
+                  src={previewUrl}
+                  alt="Fabric preview"
+                  className="w-64 h-64 object-cover rounded-lg border border-border"
+                />
+              </div>
+            )}
           </div>
+
+          <div className="space-y-2">
+            <label htmlFor="outfit-select" className="text-sm font-medium">
+              Select Outfit
+            </label>
+            <Select value={selectedOutfit} onValueChange={setSelectedOutfit}>
+              <SelectTrigger id="outfit-select">
+                <SelectValue placeholder="Choose an outfit style" />
+              </SelectTrigger>
+              <SelectContent>
+                {OUTFIT_OPTIONS.map((outfit) => (
+                  <SelectItem key={outfit} value={outfit}>
+                    {outfit}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <Button 
             onClick={handleSubmit} 
             variant="cta" 
