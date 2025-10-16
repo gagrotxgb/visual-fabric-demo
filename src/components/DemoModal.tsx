@@ -52,8 +52,10 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
       const response = await fetch(
         "https://subspatulate-gaynelle-genethlialogical.ngrok-free.dev/prompts/",
         {
+          method: "GET",
           headers: {
-            "ngrok-skip-browser-warning": "true",
+            "ngrok-skip-browser-warning": "69420",
+            "Content-Type": "application/json",
           },
         }
       );
@@ -106,7 +108,7 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
           method: "POST",
           body: formData,
           headers: {
-            "ngrok-skip-browser-warning": "true",
+            "ngrok-skip-browser-warning": "69420",
           },
         }
       );
