@@ -55,7 +55,6 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
           method: "GET",
           headers: {
             "ngrok-skip-browser-warning": "69420",
-            "Content-Type": "application/json",
           },
         }
       );
