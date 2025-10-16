@@ -50,7 +50,7 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
     setError(null);
     try {
       const response = await fetch(
-        "https://subspatulate-gaynelle-genethlialogical.ngrok-free.dev/prompts/",
+        "https://visual-fabric.onrender.com/prompts/",
         {
           method: "GET",
           headers: {
@@ -102,7 +102,7 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
       formData.append("file", selectedFile);
 
       const response = await fetch(
-        "https://subspatulate-gaynelle-genethlialogical.ngrok-free.dev/generate_mockup/",
+        "https://visual-fabric.onrender.com/generate_mockup/",
         {
           method: "POST",
           body: formData,
