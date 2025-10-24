@@ -50,7 +50,7 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
     setError(null);
     try {
       const response = await fetch(
-        "https://visual-fabric.onrender.com/prompts/",
+        "https://visual-fabric-be-924005728925.europe-west1.run.app/prompts/",
         {
           method: "GET",
           headers: {
@@ -102,7 +102,7 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
       formData.append("file", selectedFile);
 
       const response = await fetch(
-        "https://visual-fabric.onrender.com/generate_mockup/",
+        "https://visual-fabric-be-924005728925.europe-west1.run.app/generate_mockup/",
         {
           method: "POST",
           body: formData,
