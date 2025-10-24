@@ -99,7 +99,7 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
     try {
       const formData = new FormData();
       formData.append("prompt_id", selectedOutfit);
-      formData.append("file", selectedFile);
+      formData.append("fabric_file", selectedFile);
 
       const response = await fetch(
         "https://visual-fabric-be-924005728925.europe-west1.run.app/generate_mockup/",
