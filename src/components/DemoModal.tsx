@@ -31,6 +31,8 @@ interface OutfitOption {
 export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [customerFile, setCustomerFile] = useState<File | null>(null);
+  const [customerPreviewUrl, setCustomerPreviewUrl] = useState<string | null>(null);
   const [selectedOutfit, setSelectedOutfit] = useState<string>("");
   const [outfitOptions, setOutfitOptions] = useState<OutfitOption[]>([]);
   const [isLoadingOutfits, setIsLoadingOutfits] = useState(false);
@@ -87,6 +89,19 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
     }
   };
 
+  const handleCustomerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCustomerFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCustomerPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      toast.success(`Customer photo selected: ${file.name}`);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!selectedFile || !selectedOutfit) {
       return;
@@ -130,9 +145,56 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
     }
   };
 
+  const handleCustomerPreview = async () => {
+    if (!selectedFile || !customerFile || !selectedOutfit) {
+      toast.error("Please upload both fabric and customer photo, and select an outfit");
+      return;
+    }
+
+    setIsGenerating(true);
+    setError(null);
+    setGeneratedImageUrl(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("prompt_id", selectedOutfit);
+      formData.append("fabric_file", selectedFile);
+      formData.append("customer_file", customerFile);
+
+      const response = await fetch(
+        "https://visual-fabric-be-924005728925.europe-west1.run.app/customer_try_on/",
+        {
+          method: "POST",
+          body: formData,
+          headers: {
+            "ngrok-skip-browser-warning": "69420",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const imageUrl = URL.createObjectURL(blob);
+        setGeneratedImageUrl(imageUrl);
+        toast.success("Customer preview generated successfully!");
+      } else {
+        setError("Customer preview generation failed. Please try again.");
+        toast.error("Customer preview generation failed. Please try again.");
+      }
+    } catch (err) {
+      setError("An error occurred. Please try again.");
+      toast.error("An error occurred. Please try again.");
+      console.error(err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleReset = () => {
     setSelectedFile(null);
     setPreviewUrl(null);
+    setCustomerFile(null);
+    setCustomerPreviewUrl(null);
     setSelectedOutfit("");
     setGeneratedImageUrl(null);
     setError(null);
@@ -180,6 +242,36 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
                 )}
               </div>
 
+              <div className="space-y-4">
+                <label htmlFor="customer-upload" className="block">
+                  <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
+                    <Upload className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {customerFile ? customerFile.name : "Click to upload customer photo"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB</p>
+                  </div>
+                  <input
+                    id="customer-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCustomerFileChange}
+                    className="hidden"
+                    disabled={isGenerating}
+                  />
+                </label>
+
+                {customerPreviewUrl && (
+                  <div className="flex justify-center">
+                    <img
+                      src={customerPreviewUrl}
+                      alt="Customer preview"
+                      className="w-64 h-64 object-cover rounded-lg border border-border"
+                    />
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <label htmlFor="outfit-select" className="text-sm font-medium">
                   Select Outfit
@@ -218,15 +310,26 @@ export const DemoModal = ({ open, onOpenChange }: DemoModalProps) => {
                   </p>
                 </div>
               ) : (
-                <Button
-                  onClick={handleSubmit}
-                  variant="cta"
-                  className="w-full"
-                  size="lg"
-                  disabled={!selectedFile || !selectedOutfit || isLoadingOutfits}
-                >
-                  Generate Mockup
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleSubmit}
+                    variant="cta"
+                    className="flex-1"
+                    size="lg"
+                    disabled={!selectedFile || !selectedOutfit || isLoadingOutfits}
+                  >
+                    Generate Mockup
+                  </Button>
+                  <Button
+                    onClick={handleCustomerPreview}
+                    variant="default"
+                    className="flex-1"
+                    size="lg"
+                    disabled={!selectedFile || !customerFile || !selectedOutfit || isLoadingOutfits}
+                  >
+                    Customer Preview
+                  </Button>
+                </div>
               )}
             </>
           ) : (
